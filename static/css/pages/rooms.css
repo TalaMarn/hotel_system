@@ -1,0 +1,49 @@
+.rooms-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+}
+
+.rooms-toolbar .field-group label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.55rem;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.rooms-grid-full {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 960px) {
+  .rooms-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .rooms-grid-full {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 961px) and (max-width: 1100px) {
+  .rooms-grid-full {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

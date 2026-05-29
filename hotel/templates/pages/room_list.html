@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Rooms — Arthy Hotel{% endblock %}
+
+{% block content %}
+<section class="container page-shell">
+  <div class="section-header">
+    {% if user.is_staff %}
+      <span class="eyebrow">Staff inventory</span>
+      <h1>Manage rooms</h1>
+      <p class="lead">Add, edit, or remove rooms. Customer bookings are handled from the dashboard.</p>
+    {% else %}
+      <span class="eyebrow">Accommodations</span>
+      <h1>Find your perfect room</h1>
+      <p class="lead">Search by room number or type, filter by availability, and optionally check date conflicts.</p>
+    {% endif %}
+  </div>
+
+  {% if not user.is_staff %}
+  <form method="get" class="rooms-toolbar">
+    <div class="field-group">
+      <label for="q">Search</label>
+      <input class="form-input" type="text" id="q" name="q" placeholder="Room number or type..." value="{{ query }}" />
+    </div>
+    <div class="field-group">
+      <label for="check_in">Check-in</label>
+      <input class="form-input" type="date" id="check_in" name="check_in" value="{{ check_in }}" />
+    </div>
+    <div class="field-group">
+      <label for="check_out">Check-out</label>
+      <input class="form-input" type="date" id="check_out" name="check_out" value="{{ check_out }}" />
+    </div>
+    <label class="checkbox-field">
+      <input type="checkbox" name="available" value="1" {% if available_only %}checked{% endif %} />
+      Staff-enabled rooms only
+    </label>
+    <button type="submit" class="btn btn-primary">Apply filters</button>
+  </form>
+  {% else %}
+  <div class="hero-actions" style="margin-bottom: 1.5rem;">
+    <a class="btn btn-primary" href="{% url 'add_room' %}"><i class="bi bi-plus-circle"></i> Add room</a>
+    <a class="btn btn-secondary" href="{% url 'staff_dashboard' %}"><i class="bi bi-calendar-check"></i> View bookings</a>
+  </div>
+  {% endif %}
+
+  <div class="rooms-grid-full">
+    {% for item in room_cards %}
+      {% with room=item.room %}
+        <article class="card">
+          {% if room.roomPic %}
+            <img class="card-image" src="{{ room.roomPic.url }}" alt="Room {{ room.roomNo }}" />
+          {% else %}
+            <img class="card-image" src="{% static 'photos/default_room.jpg' %}" alt="Default room" />
+          {% endif %}
+          <div class="card-body">
+            <h3 class="card-title">Room {{ room.roomNo }}</h3>
+            <div class="card-meta">
+              <span><i class="bi bi-tag"></i> {{ room.roomType }}</span>
+              <span class="price-tag">${{ room.price }} <small>/ night</small></span>
+            </div>
+            {% if not room.isAvailable %}
+              <span class="badge badge-danger">Unavailable</span>
+            {% elif item.has_conflict %}
+              <span class="badge badge-warning">Booked for selected dates</span>
+            {% else %}
+              <span class="badge badge-success">Available</span>
+            {% endif %}
+          </div>
+          <div class="card-footer">
+            {% if user.is_staff %}
+              <a class="btn btn-secondary btn-sm" href="{% url 'edit_room' room.id %}">Edit</a>
+              <form method="post" action="{% url 'delete_room' room.id %}" onsubmit="return confirm('Delete room {{ room.roomNo }}?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
+            {% elif item.can_book %}
+              <a class="btn btn-primary btn-sm" href="{% url 'booking' room.id %}">Book now</a>
+            {% else %}
+              <span class="badge badge-muted">Not bookable</span>
+            {% endif %}
+          </div>
+        </article>
+      {% endwith %}
+    {% empty %}
+      <div class="empty-state">
+        <i class="bi bi-search"></i>
+        <p>No rooms match your search.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <nav aria-label="Room pagination">
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li><a href="?q={{ query }}&check_in={{ check_in }}&check_out={{ check_out }}{% if available_only %}&available=1{% endif %}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% endif %}
+        {% for num in page_numbers %}
+          <li class="{% if page_obj.number == num %}active{% endif %}">
+            {% if page_obj.number == num %}
+              <span>{{ num }}</span>
+            {% else %}
+              <a href="?q={{ query }}&check_in={{ check_in }}&check_out={{ check_out }}{% if available_only %}&available=1{% endif %}&page={{ num }}">{{ num }}</a>
+            {% endif %}
+          </li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+          <li><a href="?q={{ query }}&check_in={{ check_in }}&check_out={{ check_out }}{% if available_only %}&available=1{% endif %}&page={{ page_obj.next_page_number }}">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+</section>
+{% endblock %}

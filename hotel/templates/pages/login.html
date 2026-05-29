@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sign In — Arthy Hotel{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src="{% static 'photos/Logo.png' %}" alt="Arthy Hotel logo" />
+      <h1>Welcome back</h1>
+      <p>Sign in to manage your bookings at Arthy Hotel.</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="id_username">Username</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password">Password</label>
+        {{ form.password }}
+        {{ form.password.errors }}
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">
+        <i class="bi bi-box-arrow-in-right"></i> Sign in
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Don't have an account? <a href="{% url 'register' %}">Create one</a></p>
+      <p><a href="{% url 'customer_dashboard' %}">Back to home</a></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

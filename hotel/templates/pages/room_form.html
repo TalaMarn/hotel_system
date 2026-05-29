@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Room{% else %}Add Room{% endif %} — Arthy Hotel{% endblock %}
+
+{% block content %}
+<section class="container page-shell room-form-layout">
+  <div class="page-toolbar">
+    <div class="section-header" style="margin:0;">
+      <span class="eyebrow">Inventory</span>
+      <h1>{% if is_edit %}Edit room{% else %}Add new room{% endif %}</h1>
+    </div>
+    <a class="btn btn-secondary" href="{% url 'staff_dashboard' %}">Back to dashboard</a>
+  </div>
+
+  <form class="panel" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="id_roomNo">Room number</label>
+        {{ form.roomNo }}
+        {{ form.roomNo.errors }}
+      </div>
+      <div class="form-group">
+        <label for="id_roomType">Room type</label>
+        {{ form.roomType }}
+        {{ form.roomType.errors }}
+      </div>
+      <div class="form-group">
+        <label for="id_price">Price per night</label>
+        {{ form.price }}
+        {{ form.price.errors }}
+      </div>
+      <div class="form-group">
+        <label for="id_roomPic">Room photo</label>
+        {{ form.roomPic }}
+        {{ form.roomPic.errors }}
+      </div>
+    </div>
+
+    <div class="availability-toggle" style="margin-top: 1rem;">
+      <div>
+        <strong>Available for booking</strong>
+        <p>Disable this when the room is under maintenance or should be hidden from guests.</p>
+      </div>
+      {{ form.isAvailable }}
+    </div>
+    {{ form.isAvailable.errors }}
+
+    <div class="form-actions">
+      <a class="btn btn-secondary" href="{% url 'room_list' %}">Cancel</a>
+      <button type="submit" class="btn btn-primary">{% if is_edit %}Save changes{% else %}Create room{% endif %}</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

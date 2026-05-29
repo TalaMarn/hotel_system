@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Room Unavailable — Arthy Hotel{% endblock %}
+{% block body_class %}unavailable-page{% endblock %}
+
+{% block content %}
+<section class="container error-page">
+  <div class="error-panel panel">
+    <div class="error-code">!</div>
+    <h1>Room not available</h1>
+    <p>{{ reason }}</p>
+    <div class="reason-box">
+      Room {{ room.roomNo }} ({{ room.roomType }}) cannot be booked right now.
+    </div>
+    <div class="hero-actions" style="justify-content:center;">
+      <a class="btn btn-primary" href="{% url 'room_list' %}">Browse other rooms</a>
+      <a class="btn btn-secondary" href="{% url 'customer_dashboard' %}">Go home</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Dashboard — Arthy Hotel{% endblock %}
+
+{% block content %}
+<section class="container page-shell">
+  <div class="section-header">
+    <span class="eyebrow">Staff tools</span>
+    <h1>Operations dashboard</h1>
+    <p class="lead">View customer bookings, confirm reservations, and manage room inventory.</p>
+  </div>
+
+  <div class="hero-actions" style="margin-bottom: 1.5rem;">
+    <a class="btn btn-primary" href="{% url 'add_room' %}"><i class="bi bi-plus-circle"></i> Add room</a>
+    <a class="btn btn-secondary" href="{% url 'room_list' %}"><i class="bi bi-door-open"></i> Manage rooms</a>
+  </div>
+
+  <div class="dashboard-stats">
+    <div class="stat-card"><div class="label">Total</div><div class="value">{{ total_bookings }}</div></div>
+    <div class="stat-card"><div class="label">Pending</div><div class="value">{{ pending_bookings }}</div></div>
+    <div class="stat-card"><div class="label">Approved</div><div class="value">{{ approved_bookings }}</div></div>
+    <div class="stat-card"><div class="label">Rejected</div><div class="value">{{ rejected_bookings }}</div></div>
+    <div class="stat-card"><div class="label">Cancelled</div><div class="value">{{ cancelled_bookings }}</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" type="button" data-tab-target="bookings">Bookings</button>
+    <button class="tab-btn" type="button" data-tab-target="customers">Customers</button>
+  </div>
+
+  <div data-tab-panel="bookings">
+    <form method="get" class="dashboard-filters panel">
+      <div class="form-group" style="margin:0;">
+        <label for="q">Search</label>
+        <input class="form-input" type="text" id="q" name="q" placeholder="Name, email, or room..." value="{{ search_query }}" />
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label for="status">Status</label>
+        <select class="form-input" id="status" name="status">
+          <option value="">All statuses</option>
+          <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+          <option value="Approved" {% if status_filter == 'Approved' %}selected{% endif %}>Approved</option>
+          <option value="Rejected" {% if status_filter == 'Rejected' %}selected{% endif %}>Rejected</option>
+          <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Filter</button>
+      <a class="btn btn-secondary" href="{% url 'staff_dashboard' %}">Clear</a>
+    </form>
+
+    <div class="table-wrap">
+      {% if bookings %}
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Customer</th>
+              <th>Room</th>
+              <th>Dates</th>
+              <th>Guests</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for booking in bookings %}
+              <tr>
+                <td>#{{ booking.id }}</td>
+                <td>
+                  <strong>{{ booking.customer_name }}</strong><br />
+                  <small>{{ booking.email }}</small>
+                </td>
+                <td>{{ booking.room.roomNo }} · {{ booking.room.roomType }}</td>
+                <td>{{ booking.check_in|date:"M d" }} – {{ booking.check_out|date:"M d, Y" }}</td>
+                <td>{{ booking.guests }}</td>
+                <td>
+                  {% if booking.booking_status == 'Pending' %}
+                    <span class="badge badge-warning">Pending</span>
+                  {% elif booking.booking_status == 'Approved' %}
+                    <span class="badge badge-success">Approved</span>
+                  {% elif booking.booking_status == 'Rejected' %}
+                    <span class="badge badge-danger">Rejected</span>
+                  {% else %}
+                    <span class="badge badge-muted">{{ booking.booking_status }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if booking.booking_status == 'Pending' %}
+                    <div class="action-group">
+                      <form method="post" action="{% url 'confirm_booking' booking.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="approve" />
+                        <button type="submit" class="btn btn-primary btn-sm">Confirm booking</button>
+                      </form>
+                      <form method="post" action="{% url 'confirm_booking' booking.id %}" onsubmit="return confirm('Reject this booking?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reject" />
+                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                      </form>
+                      <a class="btn btn-secondary btn-sm" href="{% url 'booking_slip' booking.id %}">View slip</a>
+                    </div>
+                  {% else %}
+                    <a class="btn btn-secondary btn-sm" href="{% url 'booking_slip' booking.id %}">Slip</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <p>No bookings found for the selected filters.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if bookings.has_other_pages %}
+      <nav aria-label="Bookings pagination">
+        <ul class="pagination">
+          {% if bookings.has_previous %}
+            <li><a href="?page={{ bookings.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a></li>
+          {% endif %}
+          <li class="active"><span>Page {{ bookings.number }} of {{ bookings.paginator.num_pages }}</span></li>
+          {% if bookings.has_next %}
+            <li><a href="?page={{ bookings.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  </div>
+
+  <div data-tab-panel="customers" hidden>
+    {% if customers %}
+      <div class="customers-grid">
+        {% for customer in customers %}
+          <article class="panel customer-card">
+            <h3><i class="bi bi-person-circle"></i> {{ customer.username }}</h3>
+            <p><strong>Email:</strong> {{ customer.email|default:"—" }}</p>
+            <p><strong>Joined:</strong> {{ customer.date_joined|date:"M d, Y" }}</p>
+            <p><strong>Bookings:</strong> {{ customer.bookings.count }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state panel">
+        <p>No customers registered yet.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

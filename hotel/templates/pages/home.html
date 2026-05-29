@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Arthy Hotel — Luxury Stays{% endblock %}
+{% block body_class %}page-home{% endblock %}
+
+{% block content %}
+<div class="home-page">
+  <section class="container home-hero">
+    <div class="home-hero__copy">
+      <span class="eyebrow">Luxury hospitality</span>
+      <h1>Where comfort meets refined elegance</h1>
+      <p class="lead">
+        Arthy Hotel offers thoughtfully designed rooms, attentive service, and a seamless
+        booking experience — whether you are visiting for business or a well-deserved escape.
+      </p>
+      <div class="home-hero__actions">
+        {% if user.is_staff %}
+          <a class="btn btn-primary" href="{% url 'staff_dashboard' %}">Staff dashboard</a>
+          <a class="btn btn-secondary" href="{% url 'room_list' %}">Manage rooms</a>
+        {% elif user.is_authenticated %}
+          <a class="btn btn-primary" href="{% url 'room_list' %}">Browse rooms</a>
+          <a class="btn btn-secondary" href="{% url 'history' %}">My bookings</a>
+        {% else %}
+          <a class="btn btn-primary" href="{% url 'register' %}">Create account</a>
+          <a class="btn btn-secondary" href="{% url 'login' %}">Sign in to book</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="home-hero__visual">
+      <div class="home-hero__glow" aria-hidden="true"></div>
+      <div class="home-hero__frame">
+        <img src="{% static 'photos/hotel.png' %}" alt="Arthy Hotel" width="800" height="600" />
+      </div>
+    </div>
+  </section>
+
+  <section class="container home-features" aria-label="Hotel highlights">
+    <article class="home-features__item">
+      <strong>Curated rooms</strong>
+      <p>Single, medium, and family suites designed for every kind of stay.</p>
+    </article>
+    <article class="home-features__item">
+      <strong>Simple booking</strong>
+      <p>Choose dates, upload your receipt, and receive a PDF confirmation slip instantly.</p>
+    </article>
+    <article class="home-features__item">
+      <strong>Staff review</strong>
+      <p>Every reservation is reviewed by our team before final approval.</p>
+    </article>
+  </section>
+
+  <section class="container home-rooms" aria-labelledby="featured-rooms-title">
+    <header class="home-rooms__header">
+      <div class="home-rooms__intro">
+        <span class="eyebrow">Featured</span>
+        <h2 id="featured-rooms-title">Rooms you may love</h2>
+        <p class="lead">A preview of our available accommodations.</p>
+      </div>
+      <div class="home-rooms__cta">
+        <a class="btn btn-secondary" href="{% url 'room_list' %}">View all rooms</a>
+      </div>
+    </header>
+
+    <div class="home-rooms__grid">
+      {% for room in rooms %}
+        <article class="card">
+          {% if room.roomPic %}
+            <img class="card-image" src="{{ room.roomPic.url }}" alt="Room {{ room.roomNo }}" />
+          {% else %}
+            <img class="card-image" src="{% static 'photos/default_room.jpg' %}" alt="Room {{ room.roomNo }}" />
+          {% endif %}
+          <div class="card-body">
+            <h3 class="card-title">Room {{ room.roomNo }}</h3>
+            <div class="card-meta">
+              <span><i class="bi bi-tag"></i> {{ room.roomType }}</span>
+              <span class="price-tag">${{ room.price }} <small>/ night</small></span>
+            </div>
+            <span class="badge badge-success">Available</span>
+          </div>
+          <div class="card-footer">
+            {% if user.is_staff %}
+              <a class="btn btn-secondary btn-sm" href="{% url 'edit_room' room.id %}">Edit room</a>
+              <a class="btn btn-primary btn-sm" href="{% url 'room_list' %}">Manage</a>
+            {% elif user.is_authenticated %}
+              <a class="btn btn-primary btn-sm" href="{% url 'booking' room.id %}">Book now</a>
+              <a class="btn btn-secondary btn-sm" href="{% url 'room_list' %}">All rooms</a>
+            {% else %}
+              <a class="btn btn-primary btn-sm" href="{% url 'login' %}">Sign in to book</a>
+            {% endif %}
+          </div>
+        </article>
+      {% empty %}
+        <div class="empty-state panel">
+          <p>No rooms are available yet. Please check back soon.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

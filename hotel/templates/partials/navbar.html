@@ -1,0 +1,68 @@
+{% load static %}
+<header class="site-header">
+  <div class="container nav-inner">
+    {% if user.is_staff %}
+      <a class="brand" href="{% url 'staff_dashboard' %}">
+        <img src="{% static 'photos/Logo.png' %}" alt="Arthy Hotel logo" />
+        <span>Arthy Hotel Staff</span>
+      </a>
+    {% else %}
+      <a class="brand" href="{% url 'customer_dashboard' %}">
+        <img src="{% static 'photos/Logo.png' %}" alt="Arthy Hotel logo" />
+        <span>Arthy Hotel</span>
+      </a>
+    {% endif %}
+
+    <button class="nav-toggle" type="button" data-nav-toggle aria-label="Toggle navigation">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <ul class="nav-links" data-nav-links>
+      {% if user.is_staff %}
+        <li>
+          <a href="{% url 'staff_dashboard' %}" class="{% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'room_list' %}" class="{% if request.resolver_match.url_name == 'room_list' or request.resolver_match.url_name == 'edit_room' or request.resolver_match.url_name == 'add_room' %}active{% endif %}">
+            <i class="bi bi-door-open"></i> Manage Rooms
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'add_room' %}" class="{% if request.resolver_match.url_name == 'add_room' %}active{% endif %}">
+            <i class="bi bi-plus-circle"></i> Add Room
+          </a>
+        </li>
+      {% else %}
+        <li>
+          <a href="{% url 'customer_dashboard' %}" class="{% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}">
+            <i class="bi bi-house"></i> Home
+          </a>
+        </li>
+        <li>
+          <a href="{% url 'room_list' %}" class="{% if request.resolver_match.url_name == 'room_list' %}active{% endif %}">
+            <i class="bi bi-door-open"></i> Rooms
+          </a>
+        </li>
+        {% if user.is_authenticated %}
+          <li>
+            <a href="{% url 'history' %}" class="{% if request.resolver_match.url_name == 'history' %}active{% endif %}">
+              <i class="bi bi-clock-history"></i> My Bookings
+            </a>
+          </li>
+        {% endif %}
+      {% endif %}
+    </ul>
+
+    <div class="nav-actions">
+      {% if user.is_authenticated %}
+        <span class="nav-user">Hi, {{ user.username }}</span>
+        <a class="btn btn-secondary btn-sm" href="{% url 'logout' %}">Logout</a>
+      {% else %}
+        <a class="btn btn-secondary btn-sm" href="{% url 'login' %}">Sign in</a>
+        <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Register</a>
+      {% endif %}
+    </div>
+  </div>
+</header>

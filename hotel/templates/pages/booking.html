@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Book Room {{ room.roomNo }} — Arthy Hotel{% endblock %}
+
+{% block content %}
+<section class="container page-shell">
+  <div class="section-header">
+    <span class="eyebrow">Reservation</span>
+    <h1>Book Room {{ room.roomNo }}</h1>
+    <p class="lead">Check available dates below, then enter your stay details and upload your payment receipt.</p>
+  </div>
+
+  <div class="booking-layout">
+    <form class="panel" method="post" enctype="multipart/form-data" id="booking-form">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-error">
+          {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <h2>1. Choose your dates</h2>
+      <p style="color: var(--ink-muted); font-size: 0.92rem; margin-bottom: 1rem;">
+        Pick check-in and check-out dates that do not overlap existing reservations (shown in the calendar on the right).
+      </p>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="id_check_in">Check-in</label>
+          {{ form.check_in }}
+          {{ form.check_in.errors }}
+        </div>
+        <div class="form-group">
+          <label for="id_check_out">Check-out</label>
+          {{ form.check_out }}
+          {{ form.check_out.errors }}
+        </div>
+      </div>
+
+      <div id="date-selection-feedback" class="alert" hidden aria-live="polite"></div>
+
+      <h2 style="margin-top: 1.5rem;">2. Guest information</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="id_customer_name">Full name</label>
+          {{ form.customer_name }}
+          {{ form.customer_name.errors }}
+        </div>
+        <div class="form-group">
+          <label for="id_email">Email</label>
+          {{ form.email }}
+          {{ form.email.errors }}
+        </div>
+        <div class="form-group">
+          <label for="id_guests">Guests</label>
+          {{ form.guests }}
+          {{ form.guests.errors }}
+        </div>
+        <div class="form-group full">
+          <label for="id_special_request">Special request</label>
+          {{ form.special_request }}
+          {{ form.special_request.errors }}
+        </div>
+      </div>
+
+      <h2 style="margin-top: 1.5rem;">3. Payment receipt</h2>
+      <div class="upload-zone receipt-locked" id="receipt-section">
+        <p>Upload your transfer slip or payment receipt image after confirming your dates are available.</p>
+        {{ form.receipt }}
+        {{ form.receipt.errors }}
+        <div class="receipt-preview" id="receiptPreview" aria-live="polite"></div>
+      </div>
+
+      <div class="form-actions">
+        <a class="btn btn-secondary" href="{% url 'room_list' %}">Back to rooms</a>
+        <button class="btn btn-primary" type="submit" id="submit-booking">Submit booking</button>
+      </div>
+    </form>
+
+    <aside class="panel booking-summary">
+      <div class="summary-image">
+        {% if room.roomPic %}
+          <img class="card-image" src="{{ room.roomPic.url }}" alt="Room {{ room.roomNo }}" />
+        {% else %}
+          <img class="card-image" src="{% static 'photos/default_room.jpg' %}" alt="Default room" />
+        {% endif %}
+      </div>
+      <h3>Room {{ room.roomNo }}</h3>
+      <p>{{ room.roomType }} suite · ${{ room.price }}/night</p>
+
+      <div class="availability-panel">
+        <h3><i class="bi bi-calendar3"></i> Room availability</h3>
+        <div class="calendar-legend">
+          <span class="legend-item"><span class="legend-swatch available"></span> Available night</span>
+          <span class="legend-item"><span class="legend-swatch blocked"></span> Reserved</span>
+          <span class="legend-item"><span class="legend-swatch past"></span> Past</span>
+        </div>
+        <div id="availability-calendar" aria-label="Three month availability calendar"></div>
+
+        {% if blocked_periods %}
+          <p style="margin-top: 1rem; font-size: 0.88rem; color: var(--ink-muted);">Existing reservations:</p>
+          <ul class="blocked-periods-list">
+            {% for period in blocked_periods %}
+              <li>
+                <span>{{ period.check_in|date:"M d, Y" }} → {{ period.check_out|date:"M d, Y" }}</span>
+                {% if period.booking_status == 'Pending' %}
+                  <span class="badge badge-warning">Pending</span>
+                {% else %}
+                  <span class="badge badge-danger">Approved</span>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p style="margin-top: 1rem; font-size: 0.88rem; color: var(--success);">
+            <i class="bi bi-check-circle"></i> No upcoming reservations — all dates are open.
+          </p>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+
+  {{ blocked_periods|json_script:"blocked-periods-data" }}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/booking-availability.js' %}" defer></script>
+  <script>
+    const receiptInput = document.querySelector('input[type="file"][name="receipt"]');
+    const receiptPreview = document.querySelector('#receiptPreview');
+
+    function showReceiptPreview(file) {
+      if (!receiptPreview) return;
+      receiptPreview.innerHTML = '';
+      if (!file) {
+        receiptPreview.classList.remove('show');
+        return;
+      }
+      const fileName = document.createElement('strong');
+      fileName.textContent = file.name;
+      receiptPreview.appendChild(fileName);
+      if (file.type.startsWith('image/')) {
+        const image = document.createElement('img');
+        image.alt = 'Receipt preview';
+        image.src = URL.createObjectURL(file);
+        image.onload = () => URL.revokeObjectURL(image.src);
+        receiptPreview.appendChild(image);
+      }
+      receiptPreview.classList.add('show');
+    }
+
+    if (receiptInput) {
+      receiptInput.addEventListener('change', () => showReceiptPreview(receiptInput.files[0]));
+    }
+  </script>
+{% endblock %}

@@ -1,0 +1,31 @@
+.error-page {
+  min-height: calc(100vh - var(--nav-height));
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.error-code {
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 16vw, 9rem);
+  line-height: 1;
+  color: transparent;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.error-panel {
+  max-width: 520px;
+}
+
+.unavailable-page .reason-box {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+  border: 1px solid rgba(240, 180, 41, 0.35);
+  color: var(--warning);
+}
