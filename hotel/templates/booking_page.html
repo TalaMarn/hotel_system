@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  {% load static %}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Book Room - Arthy Hotel</title>
+    <link rel="icon" type="image/png" href="{% static 'photos/Logo.png' %}" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+
+    <main class="booking-shell">
+      <header class="booking-header">
+        <div>
+          <p class="eyebrow">Hotel checkout</p>
+          <h1>Complete your room booking</h1>
+          <p class="subtitle">
+            Add your stay details, include any special request, and upload your
+            payment receipt so staff can review the reservation.
+          </p>
+        </div>
+        <div class="secure-pill" aria-label="Secure booking review">
+          <span aria-hidden="true">✓</span>
+          Secure review
+        </div>
+      </header>
+
+      <section class="layout" aria-label="Hotel booking form">
+        <form class="panel" method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <section class="form-section" aria-labelledby="guestTitle">
+            <div class="section-title">
+              <h2 id="guestTitle">Customer information</h2>
+              <p class="section-note">
+                Use the name and email for this hotel booking.
+              </p>
+            </div>
+
+            <div class="form-grid">
+              <div>
+                {{ form.customer_name.label_tag }} {{ form.customer_name }} {{
+                form.customer_name.errors }}
+              </div>
+              <div>
+                {{ form.email.label_tag }} {{ form.email }} {{ form.email.errors
+                }}
+              </div>
+              <div>
+                {{ form.check_in.label_tag }} {{ form.check_in }} {{
+                form.check_in.errors }}
+              </div>
+              <div>
+                {{ form.check_out.label_tag }} {{ form.check_out }} {{
+                form.check_out.errors }}
+              </div>
+              <div>
+                {{ form.guests.label_tag }} {{ form.guests }} {{
+                form.guests.errors }}
+              </div>
+              <div class="full">
+                {{ form.special_request.label_tag }} {{ form.special_request }}
+                {{ form.special_request.errors }}
+                <p class="hint">
+                  Examples: airport pickup, extra bed, late check-in, or dietary
+                  notes.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section class="form-section" aria-labelledby="paymentTitle">
+            <div class="section-title">
+              <h2 id="paymentTitle">Payment receipt</h2>
+              <p class="section-note">
+                Attach the transfer slip or receipt image for staff
+                verification.
+              </p>
+            </div>
+
+            <div class="upload-zone">
+              <div>
+                <span class="upload-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <path d="M17 8 12 3 7 8"></path>
+                    <path d="M12 3v12"></path>
+                  </svg>
+                </span>
+                {{ form.recipt }}
+                <label class="file-trigger" for="{{ form.recipt.id_for_label }}"
+                  >Select receipt</label
+                >
+                {{ form.recipt.errors }}
+                <p class="hint">
+                  JPG, PNG, or WEBP image receipts are accepted.
+                </p>
+                <div
+                  class="receipt-preview"
+                  id="receiptPreview"
+                  aria-live="polite"
+                ></div>
+              </div>
+            </div>
+          </section>
+
+          <div class="actions">
+            <a class="btn-outline-gold" href="{% url 'room_list' %}"
+              >Back to rooms</a
+            >
+            <button class="btn-gold" type="submit">Submit Booking</button>
+          </div>
+        </form>
+
+        <aside class="summary" aria-label="Booking summary">
+          <div class="summary-image">
+            <h3>Room {{ room.roomNo }}</h3>
+            <p>{{ room.roomType }} room at Arthy Hotel</p>
+          </div>
+          <div class="summary-body">
+            <div class="summary-row">
+              <span>Room type</span>
+              <span>{{ room.roomType }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Room number</span>
+              <span>{{ room.roomNo }}</span>
+            </div>
+            <div class="summary-row">
+              <span>Status</span>
+              <span
+                >{% if room.isAvailable %}Available{% else %}Unavailable{% endif
+                %}</span
+              >
+            </div>
+            <div class="total">
+              <div class="summary-row">
+                <span>Room price</span>
+                <span>${{ room.price }}</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+    <footer class="text-center mt-2 mb-3">
+      &copy; 2026 Arthy Hotel. All rights reserved.
+      <br />
+      <a href="#">Privacy Policy</a> |
+      <a href="#">Terms of Service</a>
+    </footer>
+
+    <script>
+      const receiptInput = document.querySelector('input[type="file"]');
+      const receiptPreview = document.querySelector("#receiptPreview");
+
+      function showReceiptPreview(file) {
+        receiptPreview.innerHTML = "";
+
+        if (!file) {
+          receiptPreview.classList.remove("show");
+          return;
+        }
+
+        const fileName = document.createElement("strong");
+        fileName.textContent = file.name;
+        receiptPreview.appendChild(fileName);
+
+        if (file.type.startsWith("image/")) {
+          const image = document.createElement("img");
+          image.alt = "Receipt preview";
+          image.src = URL.createObjectURL(file);
+          image.onload = () => URL.revokeObjectURL(image.src);
+          receiptPreview.appendChild(image);
+        } else {
+          const note = document.createElement("p");
+          note.className = "hint";
+          note.textContent = "Preview is available for image receipts only.";
+          receiptPreview.appendChild(note);
+        }
+
+        receiptPreview.classList.add("show");
+      }
+
+      if (receiptInput) {
+        receiptInput.addEventListener("change", () => {
+          showReceiptPreview(receiptInput.files[0]);
+        });
+      }
+    </script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>

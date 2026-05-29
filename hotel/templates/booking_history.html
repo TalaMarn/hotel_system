@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  {% load static %}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arthy Hotel</title>
+    <link rel="icon" type="image/png" href="{% static 'photos/Logo.png' %}" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/static/style.css" />
+  <body>
+    {% include 'navbar.html' %}
+
+    <!-- Main Section -->
+    <div class="container">
+      <div class="hero-section">
+        <h1>Booking History</h1>
+        <p>Review your past bookings and download your booking slips.</p>
+      </div>
+
+      <div class="room-section mt-4">
+        {% if bookings %}
+        <div class="list-group">
+          {% for booking in bookings %}
+          <div
+            class="list-group-item mb-3"
+            style="
+              background-color: #282828;
+              border: 1px solid #444;
+              color: #e6b31e;
+              border-radius: 5px;
+            "
+          >
+            <div class="d-flex w-100 justify-content-between">
+              <h5 class="mb-1">
+                {{ booking.room.roomNo }} - {{ booking.room.roomType }}
+              </h5>
+              <h5>status: {{ booking.booking_status}}</h5>
+              <small>{{ booking.created_at|date:"F j, Y, g:i a" }}</small>
+            </div>
+            <p class="mb-1">
+              Customer: {{ booking.customer_name }} ({{ booking.email }})
+            </p>
+            <a
+              href="{% url 'booking_slip' booking.id %}"
+              class="btn btn-warning btn-sm mt-2"
+              >Download Booking Slip</a
+            >
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p>You have no past bookings.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center mt-5 mb-3" style="color: #e6b31e">
+      &copy; 2026 Arthy Hotel. All rights reserved.
+      <br />
+      <a href="#" style="color: #e6b31e">Privacy Policy</a> |
+      <a href="#" style="color: #e6b31e">Terms of Service</a>
+    </footer>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
