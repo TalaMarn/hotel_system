@@ -208,9 +208,47 @@ def customer_dashboard(request):
 @login_required
 @staff_required
 def staff_dashboard(request):
-    rooms = Room.objects.all().order_by('id')[:3]
+    # Get all bookings with filters
+    status_filter = request.GET.get('status', '')
+    search_query = request.GET.get('q', '')
+    
+    bookings = Booking.objects.all().order_by('-created_at')
+    
+    if status_filter:
+        bookings = bookings.filter(booking_status=status_filter)
+    
+    if search_query:
+        bookings = bookings.filter(
+            customer_name__icontains=search_query
+        ) | bookings.filter(
+            email__icontains=search_query
+        ) | bookings.filter(
+            room__roomNo__icontains=search_query
+        )
+    
+    # Get all customers
+    customers = User.objects.filter(profile__role='Customer').order_by('date_joined')
+    
+    # Get summary statistics
+    total_bookings = Booking.objects.count()
+    pending_bookings = Booking.objects.filter(booking_status='Pending').count()
+    approved_bookings = Booking.objects.filter(booking_status='Approved').count()
+    rejected_bookings = Booking.objects.filter(booking_status='Rejected').count()
+    
+    # Paginate bookings
+    paginator = Paginator(bookings, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'rooms': rooms,
+        'bookings': page_obj,
+        'customers': customers,
+        'total_bookings': total_bookings,
+        'pending_bookings': pending_bookings,
+        'approved_bookings': approved_bookings,
+        'rejected_bookings': rejected_bookings,
+        'status_filter': status_filter,
+        'search_query': search_query,
     }
 
     return render(request, 'staff_dashboard.html', context)
@@ -378,6 +416,26 @@ def booking_slip(request, booking_id):
 def booking_history(request):
     bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'booking_history.html', {'bookings': bookings})
+
+@login_required
+@staff_required
+@require_POST
+def confirm_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    action = request.POST.get('action', 'approve')
+    
+    if action == 'approve':
+        booking.booking_status = 'Approved'
+        messages.success(request, f'Booking #{booking.id} has been approved.')
+    elif action == 'reject':
+        booking.booking_status = 'Rejected'
+        # Make room available again
+        booking.room.isAvailable = True
+        booking.room.save()
+        messages.success(request, f'Booking #{booking.id} has been rejected.')
+    
+    booking.save()
+    return redirect('staff_dashboard')
 
 def logout_view(request):
     logout(request)

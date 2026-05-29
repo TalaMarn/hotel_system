@@ -1,5 +1,5 @@
 from django import forms
-from .models import Booking, Room
+from .models import Booking, Room, Profile
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -25,6 +25,11 @@ class RegisterForm(forms.ModelForm):
         'class': 'form-control',
         'placeholder': 'Confirm Password'
     }))
+
+    role = forms.ChoiceField(choices=Profile.Role_CHOICES, widget=forms.Select(attrs={
+        'class': 'form-control',
+        'placeholder': 'Role'
+    }), required=False)
 
     def clean(self):
         cleaned_data = super().clean()

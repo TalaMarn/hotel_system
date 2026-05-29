@@ -14,4 +14,5 @@ urlpatterns = [
     path('booking/<int:room_id>/', views.booking_view, name='booking'),
     path('booking-slip/<int:booking_id>/', views.booking_slip, name='booking_slip'),
     path('booking-history/', views.booking_history, name='history'),
+    path('confirm-booking/<int:booking_id>/', views.confirm_booking, name='confirm_booking'),
 ]
