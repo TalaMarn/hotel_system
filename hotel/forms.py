@@ -1,6 +1,7 @@
 from django import forms
-from .models import Profile, Booking, Room
+from .models import Booking, Room
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class LoginForm(forms.Form):
     username = forms.CharField( widget=forms.TextInput(attrs={
@@ -34,14 +35,6 @@ class RegisterForm(forms.ModelForm):
             self.add_error('confirm_password', 'Passwords do not match.')
         return cleaned_data
     
-    role = forms.ChoiceField(
-        choices=Profile.Role_CHOICES,
-        widget=forms.Select(attrs={
-            'class':'form-control'
-        })
-    )
-    
-
     class Meta:
         model = User
         fields = ['username', 'email', 'password']
@@ -68,7 +61,7 @@ class RegisterForm(forms.ModelForm):
 class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking
-        fields = ['customer_name', 'email', 'check_in', 'check_out', 'special_request', 'recipt']
+        fields = ['customer_name', 'email', 'check_in', 'check_out', 'special_request', 'receipt']
 
     customer_name = forms.CharField(max_length=100)
     email = forms.EmailField()
@@ -82,7 +75,21 @@ class BookingForm(forms.ModelForm):
             'placeholder': 'Any special requests?'
         })
     )
-    recipt = forms.ImageField(required=True)
+    receipt = forms.ImageField(required=True)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        check_in = cleaned_data.get('check_in')
+        check_out = cleaned_data.get('check_out')
+        today = timezone.localdate()
+
+        if check_in and check_in < today:
+            self.add_error('check_in', 'Check-in date cannot be in the past.')
+
+        if check_in and check_out and check_out <= check_in:
+            self.add_error('check_out', 'Check-out date must be after check-in date.')
+
+        return cleaned_data
 
 class RoomForm(forms.ModelForm):
     class Meta:

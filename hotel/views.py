@@ -2,9 +2,11 @@ from io import BytesIO
 from pathlib import Path
 from django.core.paginator import Paginator
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Booking, Room
+from .models import Booking, Profile, Room
 from .forms import LoginForm, BookingForm , RegisterForm, RoomForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
@@ -204,6 +206,7 @@ def customer_dashboard(request):
     return render(request, 'customer_dashboard.html', context)
 
 @login_required
+@staff_required
 def staff_dashboard(request):
     rooms = Room.objects.all().order_by('id')[:3]
     context = {
@@ -243,7 +246,6 @@ def register_view(request):
         if form.is_valid():
             username = form.cleaned_data['username']
             email = form.cleaned_data['email']
-            role = form.cleaned_data['role']
             password = form.cleaned_data['password']
             confirm_password = form.cleaned_data['confirm_password']
 
@@ -255,9 +257,7 @@ def register_view(request):
                 messages.error(request, 'Passwords do not match.')
             else:
                 user = User.objects.create_user(username=username, email=email, password=password)
-                if role == 'Staff':
-                    user.is_staff = True
-                    user.save()
+                Profile.objects.create(user=user, role='Customer')
                 messages.success(request, 'Account created successfully. Please log in.')
                 return redirect('login')
 
@@ -328,8 +328,8 @@ def delete_room(request, room_id):
 @login_required
 def booking_view(request, room_id):
 
-    room = get_object_or_404(Room, id=room_id)
     user = get_object_or_404(User, id=request.user.id)
+    room = get_object_or_404(Room, id=room_id)
 
     # Prevent booking unavailable room
     if not room.isAvailable:
@@ -340,19 +340,19 @@ def booking_view(request, room_id):
         form = BookingForm(request.POST, request.FILES)
 
         if form.is_valid():
+            with transaction.atomic():
+                locked_room = Room.objects.select_for_update().get(id=room.id)
 
-            booking = form.save(commit=False)
+                if not locked_room.isAvailable:
+                    return render(request, '404.html')
 
-            # connect selected room
-            booking.room = room
-            booking.user = user
+                booking = form.save(commit=False)
+                booking.room = locked_room
+                booking.user = user
+                booking.save()
 
-            # save booking
-            booking.save()
-
-            # update room status
-            room.isAvailable = False
-            room.save()
+                locked_room.isAvailable = False
+                locked_room.save(update_fields=['isAvailable'])
 
             return redirect('booking_slip', booking_id=booking.id)
 
@@ -367,6 +367,9 @@ def booking_view(request, room_id):
 @login_required
 def booking_slip(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
+    if booking.user != request.user and not request.user.is_staff:
+        raise PermissionDenied
+
     response = HttpResponse(_build_booking_slip_pdf(booking), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="booking-slip-{booking.id}.pdf"'
     return response

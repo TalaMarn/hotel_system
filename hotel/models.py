@@ -11,7 +11,7 @@ class Room(models.Model):
     ]
     roomNo = models.CharField(max_length=10)
     roomType = models.CharField(max_length=10, choices=ROOM_TYPE, default='Single')
-    price = models.FloatField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     roomPic = models.ImageField(upload_to='Room_Img/', null=True, blank=True)
     isAvailable = models.BooleanField(default=True)
     
@@ -32,6 +32,13 @@ class Profile(models.Model):
         return self.user.username
 
 class Booking(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     customer_name = models.CharField(max_length=100)
@@ -40,5 +47,8 @@ class Booking(models.Model):
     check_out = models.DateField()
     special_request = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    recipt = models.ImageField(upload_to='Recipt_Img/', null=True, blank=True)
-    booking_status = models.CharField(max_length=20, default='Pending')
+    receipt = models.ImageField(upload_to='Receipt_Img/', null=True, blank=True)
+    booking_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+
+    def __str__(self):
+        return f'{self.customer_name} - {self.room.roomNo}'
