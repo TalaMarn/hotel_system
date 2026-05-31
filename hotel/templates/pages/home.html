@@ -51,6 +51,8 @@
     </article>
   </section>
 
+  
+
   <section class="container home-rooms" aria-labelledby="featured-rooms-title">
     <header class="home-rooms__header">
       <div class="home-rooms__intro">
@@ -96,6 +98,30 @@
           <p>No rooms are available yet. Please check back soon.</p>
         </div>
       {% endfor %}
+
+      
+    </div>
+  </section>
+  <section class="container about-hotel" aria-labelledby="about-hotel-title">
+    <header class="section-header">
+      <span class="eyebrow">About</span>
+      <h2 id="about-hotel-title">About Arthy Hotel</h2>
+      <p class="lead">We offer warm hospitality, modern amenities, and attentive staff to make every stay memorable.</p>
+    </header>
+
+    <div class="about-grid">
+      <div class="about-copy">
+        <p>At Arthy Hotel, guests enjoy comfortable rooms, complimentary Wi‑Fi, daily housekeeping, and 24/7 front desk support. Our concierge assists with dining reservations, local tours, and transport arrangements.</p>
+        <ul class="feature-list">
+          <li>Complimentary Wi‑Fi &amp; business services</li>
+          <li>Personalized concierge assistance</li>
+          <li>Flexible check‑in/out and secure bookings</li>
+        </ul>
+        <p></p>
+          <a class="btn btn-primary mt-5" href="{% url 'room_list' %}">Explore rooms</a>
+          <a class="btn btn-secondary" href="{% url 'register' %}">Join now</a>
+        </p>
+      </div>
     </div>
   </section>
 </div>
