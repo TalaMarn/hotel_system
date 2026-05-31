@@ -1,0 +1,41 @@
+{% extends "base.html" %} {% block title %}Payment Receipt — Arthy Hotel
+<p></p>
+{% endblock %} {% block content %}
+<section class="container page-shell">
+  <div class="section-header">
+    <span class="eyebrow">Receipt</span>
+    <h1>Payment receipt for booking #{{ booking.id }}</h1>
+    <p class="lead">
+      Uploaded by {{ booking.customer_name }} ({{ booking.email }}) on {{ booking.created_at|date:"M d, Y H:i" }}
+    </p>
+  </div>
+
+  <div class="panel">
+    <p>
+      <strong>Room:</strong> {{ booking.room.roomNo }} · {{ booking.room.roomType }}
+    </p>
+    <p>
+      <strong>Dates:</strong> {{ booking.check_in|date:"M d, Y" }} – {{ booking.check_out|date:"M d, Y" }}
+    </p>
+    <p><strong>Status:</strong> {{ booking.booking_status }}</p>
+  </div>
+
+  <div class="panel">
+    {% if booking.receipt %}
+    <img
+      src="{{ booking.receipt.url }}"
+      alt="Payment receipt for booking {{ booking.id }}"
+      style="max-width: 100%; height: auto"
+    />
+    {% else %}
+    <p>No receipt uploaded.</p>
+    {% endif %}
+  </div>
+
+  <p>
+    <a class="btn btn-secondary" href="{% url 'staff_dashboard' %}"
+      >Back to dashboard</a
+    >
+  </p>
+</section>
+{% endblock %}

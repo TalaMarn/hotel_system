@@ -11,6 +11,17 @@ from hotel.services.availability import room_has_date_conflict
 
 
 @staff_member_required
+def view_receipt(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+
+    if not booking.receipt:
+        messages.error(request, 'No payment receipt uploaded for this booking.')
+        return redirect('staff_dashboard')
+
+    return render(request, 'pages/receipt_view.html', {'booking': booking})
+
+
+@staff_member_required
 def staff_dashboard(request):
     status_filter = request.GET.get('status', '')
     search_query = request.GET.get('q', '')
