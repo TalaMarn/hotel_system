@@ -1,9 +1,11 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from hotel.decorators import staff_required
+
 from hotel.forms import RoomForm
 from hotel.models import Room
 from hotel.services.availability import overlapping_bookings
@@ -65,7 +67,7 @@ def room_list(request):
     })
 
 
-@staff_required
+@staff_member_required
 def add_room(request):
     if request.method == 'POST':
         form = RoomForm(request.POST, request.FILES)
@@ -78,7 +80,7 @@ def add_room(request):
     return render(request, 'pages/room_form.html', {'form': form, 'is_edit': False})
 
 
-@staff_required
+@staff_member_required
 def edit_room(request, room_id):
     room = get_object_or_404(Room, id=room_id)
 
@@ -97,7 +99,7 @@ def edit_room(request, room_id):
     })
 
 
-@staff_required
+@staff_member_required
 @require_POST
 def delete_room(request, room_id):
     room = get_object_or_404(Room, id=room_id)

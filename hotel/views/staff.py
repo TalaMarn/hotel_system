@@ -5,12 +5,12 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from hotel.decorators import staff_required
+from django.contrib.admin.views.decorators import staff_member_required
 from hotel.models import Booking
 from hotel.services.availability import room_has_date_conflict
 
 
-@staff_required
+@staff_member_required
 def staff_dashboard(request):
     status_filter = request.GET.get('status', '')
     search_query = request.GET.get('q', '')
@@ -51,7 +51,7 @@ def staff_dashboard(request):
     })
 
 
-@staff_required
+@staff_member_required
 @require_POST
 def confirm_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)

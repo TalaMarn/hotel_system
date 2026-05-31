@@ -6,14 +6,14 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from hotel.decorators import customer_required
+
 from hotel.forms import BookingForm
 from hotel.models import Booking, Room
 from hotel.services.availability import get_room_blocked_periods
 from hotel.services.pdf import build_booking_slip_pdf
 
 
-@customer_required
+@login_required
 def booking_view(request, room_id):
     room = get_object_or_404(Room, id=room_id)
 
@@ -59,13 +59,13 @@ def booking_slip(request, booking_id):
     return response
 
 
-@customer_required
+@login_required
 def booking_history(request):
     bookings = Booking.objects.filter(user=request.user).select_related('room')
     return render(request, 'pages/booking_history.html', {'bookings': bookings})
 
 
-@customer_required
+@login_required
 @require_POST
 def cancel_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, user=request.user)
